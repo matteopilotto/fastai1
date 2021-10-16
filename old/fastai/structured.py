@@ -4,7 +4,7 @@ from sklearn_pandas import DataFrameMapper
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.impute._base import SimpleImputer as Imputer
 from pandas.api.types import is_string_dtype, is_numeric_dtype, is_categorical_dtype
-from sklearn.ensemble import forest
+from sklearn.ensemble import _forest
 from sklearn.tree import export_graphviz
 
 def set_plot_sizes(sml, med, big):
@@ -119,9 +119,14 @@ def add_datepart(df, fldnames, drop=True, time=False, errors="raise"):
         targ_pre = re.sub('[Dd]ate$', '', fldname)
         attr = ['Year', 'Month', 'Week', 'Day', 'Dayofweek', 'Dayofyear',
                 'Is_month_end', 'Is_month_start', 'Is_quarter_end', 'Is_quarter_start', 'Is_year_end', 'Is_year_start']
-        if time: attr = attr + ['Hour', 'Minute', 'Second']
-        for n in attr: df[targ_pre + n] = getattr(fld.dt, n.lower())
-        df[targ_pre + 'Elapsed'] = fld.astype(np.int64) // 10 ** 9
+        if time:
+          attr = attr + ['Hour', 'Minute', 'Second']
+        for n in attr:
+          if n == 'Week':
+            df[targ_pre + n] = getattr(fld.dt.isocalendar(), n.lower())
+          else:
+            df[targ_pre + n] = getattr(fld.dt, n.lower())
+        df[targ_pre + 'Elapsed'] = fld.view(np.int64) // 10 ** 9
         if drop: df.drop(fldname, axis=1, inplace=True)
 
 def is_date(x): return np.issubdtype(x.dtype, np.datetime64)
@@ -400,14 +405,14 @@ def set_rf_samples(n):
     """ Changes Scikit learn's random forests to give each tree a random sample of
     n random rows.
     """
-    forest._generate_sample_indices = (lambda rs, n_samples:
-        forest.check_random_state(rs).randint(0, n_samples, n))
+    _forest._generate_sample_indices = (lambda rs, n_samples, n_samples_bootstrap:
+        _forest.check_random_state(rs).randint(0, n_samples, n))
 
 def reset_rf_samples():
     """ Undoes the changes produced by set_rf_samples.
     """
-    forest._generate_sample_indices = (lambda rs, n_samples:
-        forest.check_random_state(rs).randint(0, n_samples, n_samples))
+    _forest._generate_sample_indices = (lambda rs, n_samples, n_samples_bootstrap:
+        _forest.check_random_state(rs).randint(0, n_samples, n_samples))
 
 def get_nn_mappers(df, cat_vars, contin_vars):
     # Replace nulls with 0 for continuous, "" for categorical.
