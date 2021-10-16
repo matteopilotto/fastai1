@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from itertools import chain
 from functools import partial
 from collections import Counter, OrderedDict
-from collections.abc import Iterable
+from collections.abc import Iterable # added to prevent warning
 from isoweek import Week
 from pandas_summary import DataFrameSummary
 from IPython.lib.display import FileLink
@@ -57,4 +57,3 @@ else:
     from tqdm import tqdm, trange
     tnrange=trange
     tqdm_notebook=tqdm
-
