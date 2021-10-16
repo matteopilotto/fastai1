@@ -9,7 +9,8 @@ from glob import glob, iglob
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from itertools import chain
 from functools import partial
-from collections import Iterable, Counter, OrderedDict
+from collections import Counter, OrderedDict
+from collections.abc import Iterable
 from isoweek import Week
 from pandas_summary import DataFrameSummary
 from IPython.lib.display import FileLink
